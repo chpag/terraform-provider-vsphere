@@ -30,7 +30,7 @@ func TestAccDataSourceVSphereContentLibraryItems_basic(t *testing.T) {
 						"data.vsphere_content_library_items.items", "items.0.name", "TinyVM",
 					),
 					resource.TestCheckResourceAttr(
-						"data.vsphere_content_library_items.items", "items.0.type", "ovf",
+						"data.vsphere_content_library_items.items", "items.0.type", "ova",
 					),
 				),
 			},
@@ -83,7 +83,9 @@ resource "vsphere_content_library_item" "item" {
 data "vsphere_content_library_items" "items" {
   library_id = vsphere_content_library.library.id
   name       = vsphere_content_library_item.item.name
-  type       = "ovf"
+  type       = "ova"
+
+  depends_on = [vsphere_content_library_item.item]
 }
 `, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
 		testhelper.TestOva,
