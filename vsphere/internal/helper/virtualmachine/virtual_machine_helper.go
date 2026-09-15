@@ -90,6 +90,11 @@ func List(client *govmomi.Client) ([]*object.VirtualMachine, error) {
 	return vmsByPath(client, "/*")
 }
 
+// ListFromPath returns all virtual machines found recursively under the given inventory path.
+func ListFromPath(client *govmomi.Client, inventoryPath string) ([]*object.VirtualMachine, error) {
+	return vmsByPath(client, inventoryPath)
+}
+
 func vmsByPath(client *govmomi.Client, path string) ([]*object.VirtualMachine, error) {
 	ctx := context.TODO()
 	var vms []*object.VirtualMachine

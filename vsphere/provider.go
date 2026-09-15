@@ -192,6 +192,7 @@ func Provider() *schema.Provider {
 			"vsphere_tag_category":               dataSourceVSphereTagCategory(),
 			"vsphere_vapp_container":             dataSourceVSphereVAppContainer(),
 			"vsphere_virtual_machine":            dataSourceVSphereVirtualMachine(),
+			"vsphere_virtual_machines":           dataSourceVSphereVirtualMachines(),
 			"vsphere_vmfs_disks":                 dataSourceVSphereVmfsDisks(),
 			"vsphere_zone":                       dataSourceVSphereZone(),
 		},
