@@ -117,6 +117,33 @@ func DeleteLibrary(c *rest.Client, lib *library.Library) error {
 	return nil
 }
 
+// ItemsFromCriteria searches a Content Library for items matching the given name and/or type.
+// Both name and itemType are optional filters; if empty, they are not applied.
+func ItemsFromCriteria(c *rest.Client, libraryID string, name string, itemType string) ([]*library.Item, error) {
+	log.Printf("[DEBUG] contentlibrary.ItemsFromCriteria: Searching library %s for name=%q type=%q", libraryID, name, itemType)
+	clm := library.NewManager(c)
+	ctx := context.TODO()
+	fi := library.FindItem{
+		LibraryID: libraryID,
+		Name:      name,
+		Type:      itemType,
+	}
+	ids, err := clm.FindLibraryItems(ctx, fi)
+	if err != nil {
+		return nil, provider.Error(libraryID, "ItemsFromCriteria", err)
+	}
+	items := make([]*library.Item, 0, len(ids))
+	for _, id := range ids {
+		item, err := clm.GetLibraryItem(ctx, id)
+		if err != nil {
+			return nil, provider.Error(id, "ItemsFromCriteria", err)
+		}
+		items = append(items, item)
+	}
+	log.Printf("[DEBUG] contentlibrary.ItemsFromCriteria: Found %d item(s) in library %s", len(items), libraryID)
+	return items, nil
+}
+
 // ItemFromName accepts a Content Library item name along with a Content Library and will return the item object.
 func ItemFromName(c *rest.Client, l *library.Library, name string) (*library.Item, error) {
 	log.Printf("[DEBUG] contentlibrary.ItemFromName: Retrieving library item %s.", name)
