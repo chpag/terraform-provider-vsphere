@@ -36,17 +36,19 @@ func dataSourceVSphereContentLibraryItems() *schema.Resource {
 				Description: "The ID of the content library to search.",
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Filter items by name (case-insensitive) of the content library item. Mutually exclusive with name_regex.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Description:   "Filter items by name (case-insensitive) of the content library item. Mutually exclusive with name_regex.",
+				ConflictsWith: []string{"name_regex"},
 			},
 			"name_regex": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Description:  "Filter items by name using a regular expression. Mutually exclusive with name.",
-				ValidateFunc: validation.StringIsValidRegExp,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Description:   "Filter items by name using a regular expression. Mutually exclusive with name.",
+				ValidateFunc:  validation.StringIsValidRegExp,
+				ConflictsWith: []string{"name"},
 			},
 			"type": {
 				Type:        schema.TypeString,
@@ -123,10 +125,6 @@ func dataSourceVSphereContentLibraryItemsRead(d *schema.ResourceData, meta inter
 	itemType := d.Get("type").(string)
 	sortBy := d.Get("sort_by").(string)
 	sortOrder := d.Get("sort_order").(string)
-
-	if name != "" && nameRegex != "" {
-		return fmt.Errorf("only one of name or name_regex may be set")
-	}
 
 	items, err := contentlibrary.ItemsFromCriteria(rc, libraryID, name, nameRegex, itemType)
 	if err != nil {

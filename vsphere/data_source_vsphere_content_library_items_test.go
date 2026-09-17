@@ -6,11 +6,24 @@ package vsphere
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/vmware/terraform-provider-vsphere/vsphere/internal/helper/testhelper"
 )
+
+func TestAccDataSourceVSphereContentLibraryItems_nameAndNameRegexConflict(t *testing.T) {
+	resource.UnitTest(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDataSourceVSphereContentLibraryItemsNameAndRegexConfig(),
+				ExpectError: regexp.MustCompile(`"name_regex": conflicts with name`),
+			},
+		},
+	})
+}
 
 func TestAccDataSourceVSphereContentLibraryItems_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -344,4 +357,14 @@ data "vsphere_content_library_items" "limited" {
 `, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
 		testhelper.TestOva,
 	)
+}
+
+func testAccDataSourceVSphereContentLibraryItemsNameAndRegexConfig() string {
+	return `
+data "vsphere_content_library_items" "conflict" {
+  library_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  name       = "TinyVM"
+  name_regex = "^Tiny"
+}
+`
 }
