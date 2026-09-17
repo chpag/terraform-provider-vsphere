@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/vmware/terraform-provider-vsphere/vsphere/internal/helper/contentlibrary"
 	"github.com/vmware/terraform-provider-vsphere/vsphere/internal/helper/provider"
 )
@@ -27,7 +28,14 @@ func dataSourceVSphereContentLibraryItems() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Filter by name of the content library item. If omitted, all items matching the type filter are returned.",
+				Description: "Filter by exact name of the content library item. Mutually exclusive with name_regex.",
+			},
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Description:  "Filter items by name using a regular expression. Mutually exclusive with name.",
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"type": {
 				Type:        schema.TypeString,
@@ -67,9 +75,14 @@ func dataSourceVSphereContentLibraryItemsRead(d *schema.ResourceData, meta inter
 	rc := meta.(*Client).restClient
 	libraryID := d.Get("library_id").(string)
 	name := d.Get("name").(string)
+	nameRegex := d.Get("name_regex").(string)
 	itemType := d.Get("type").(string)
 
-	items, err := contentlibrary.ItemsFromCriteria(rc, libraryID, name, itemType)
+	if name != "" && nameRegex != "" {
+		return fmt.Errorf("only one of name or name_regex may be set")
+	}
+
+	items, err := contentlibrary.ItemsFromCriteria(rc, libraryID, name, nameRegex, itemType)
 	if err != nil {
 		return provider.Error(libraryID, "dataSourceVSphereContentLibraryItemsRead", err)
 	}
@@ -88,7 +101,7 @@ func dataSourceVSphereContentLibraryItemsRead(d *schema.ResourceData, meta inter
 
 	// Derive a stable ID from the search parameters
 	h := sha256.New()
-	_, _ = fmt.Fprintf(h, "%s|%s|%s", libraryID, name, itemType)
+	_, _ = fmt.Fprintf(h, "%s|%s|%s|%s", libraryID, name, nameRegex, itemType)
 	d.SetId(fmt.Sprintf("%x", h.Sum(nil)))
 	return nil
 }

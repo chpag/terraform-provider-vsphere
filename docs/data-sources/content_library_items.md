@@ -9,8 +9,8 @@ description: |-
 # vsphere_content_library_items
 
 The `vsphere_content_library_items` data source can be used to search for
-items in a content library by name and/or type, and returns the list of
-matching items.
+items in a content library by name, regular expression, and/or type, and
+returns the list of matching items.
 
 ~> **NOTE:** This resource requires vCenter and is not available on direct ESXi
 host connections.
@@ -28,6 +28,19 @@ data "vsphere_content_library_items" "ovf_items" {
   library_id = data.vsphere_content_library.library.id
   name       = "ubuntu-server-lts"
   type       = "ovf"
+}
+```
+
+### Search by name regex
+
+```hcl
+data "vsphere_content_library" "library" {
+  name = "Content Library"
+}
+
+data "vsphere_content_library_items" "ubuntu" {
+  library_id  = data.vsphere_content_library.library.id
+  name_regex  = "^ubuntu-.*-lts$"
 }
 ```
 
@@ -61,8 +74,10 @@ data "vsphere_content_library_items" "all" {
 The following arguments are supported:
 
 * `library_id` - (Required) The ID of the content library to search.
-* `name` - (Optional) Filter items by name. If omitted, items of any name are
-  returned.
+* `name` - (Optional) Filter items by exact name. Mutually exclusive with
+  `name_regex`. If omitted, items of any name are returned.
+* `name_regex` - (Optional) Filter items by name using a regular expression.
+  Mutually exclusive with `name`. If omitted, items of any name are returned.
 * `type` - (Optional) Filter items by type (e.g. `ovf`, `iso`, `vm-template`).
   If omitted, items of any type are returned.
 

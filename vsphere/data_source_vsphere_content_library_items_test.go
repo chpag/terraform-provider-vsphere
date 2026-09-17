@@ -58,6 +58,29 @@ func TestAccDataSourceVSphereContentLibraryItems_allItems(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceVSphereContentLibraryItems_nameRegex(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			RunSweepers()
+			testAccPreCheck(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceVSphereContentLibraryItemsRegexConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.regex", "items.#", "1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.regex", "items.0.name", "TinyVM",
+					),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceVSphereContentLibraryItemsConfig() string {
 	return fmt.Sprintf(`
 %s
@@ -116,6 +139,39 @@ resource "vsphere_content_library_item" "item" {
 
 data "vsphere_content_library_items" "all" {
   library_id = vsphere_content_library.library.id
+
+  depends_on = [vsphere_content_library_item.item]
+}
+`, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
+		testhelper.TestOva,
+	)
+}
+
+func testAccDataSourceVSphereContentLibraryItemsRegexConfig() string {
+	return fmt.Sprintf(`
+%s
+
+variable "file" {
+  type    = string
+  default = "%s"
+}
+
+resource "vsphere_content_library" "library" {
+  name            = "ContentLibrary_items_regex_test"
+  storage_backing = [data.vsphere_datastore.rootds1.id]
+  description     = "Library Description"
+}
+
+resource "vsphere_content_library_item" "item" {
+  name       = "TinyVM"
+  library_id = vsphere_content_library.library.id
+  type       = "ova"
+  file_url   = var.file
+}
+
+data "vsphere_content_library_items" "regex" {
+  library_id = vsphere_content_library.library.id
+  name_regex = "^Tiny"
 
   depends_on = [vsphere_content_library_item.item]
 }
