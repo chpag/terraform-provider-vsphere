@@ -81,6 +81,81 @@ func TestAccDataSourceVSphereContentLibraryItems_nameRegex(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceVSphereContentLibraryItems_sortByName(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			RunSweepers()
+			testAccPreCheck(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceVSphereContentLibraryItemsSortByNameConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.sorted_asc", "items.#", "2",
+					),
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.sorted_asc", "items.0.name", "AlphaVM",
+					),
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.sorted_asc", "items.1.name", "ZetaVM",
+					),
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.sorted_desc", "items.0.name", "ZetaVM",
+					),
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.sorted_desc", "items.1.name", "AlphaVM",
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceVSphereContentLibraryItems_limit(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			RunSweepers()
+			testAccPreCheck(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceVSphereContentLibraryItemsLimitConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.vsphere_content_library_items.limited", "items.#", "1",
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceVSphereContentLibraryItems_timestamps(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			RunSweepers()
+			testAccPreCheck(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceVSphereContentLibraryItemsAllConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"data.vsphere_content_library_items.all", "items.0.creation_time",
+					),
+					resource.TestCheckResourceAttrSet(
+						"data.vsphere_content_library_items.all", "items.0.last_modified_time",
+					),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceVSphereContentLibraryItemsConfig() string {
 	return fmt.Sprintf(`
 %s
@@ -174,6 +249,97 @@ data "vsphere_content_library_items" "regex" {
   name_regex = "^Tiny"
 
   depends_on = [vsphere_content_library_item.item]
+}
+`, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
+		testhelper.TestOva,
+	)
+}
+
+func testAccDataSourceVSphereContentLibraryItemsSortByNameConfig() string {
+	return fmt.Sprintf(`
+%s
+
+variable "file" {
+  type    = string
+  default = "%s"
+}
+
+resource "vsphere_content_library" "library" {
+  name            = "ContentLibrary_items_sort_test"
+  storage_backing = [data.vsphere_datastore.rootds1.id]
+  description     = "Library Description"
+}
+
+resource "vsphere_content_library_item" "alpha" {
+  name       = "AlphaVM"
+  library_id = vsphere_content_library.library.id
+  type       = "ova"
+  file_url   = var.file
+}
+
+resource "vsphere_content_library_item" "zeta" {
+  name       = "ZetaVM"
+  library_id = vsphere_content_library.library.id
+  type       = "ova"
+  file_url   = var.file
+}
+
+data "vsphere_content_library_items" "sorted_asc" {
+  library_id = vsphere_content_library.library.id
+  sort_by    = "name"
+  sort_order = "asc"
+
+  depends_on = [vsphere_content_library_item.alpha, vsphere_content_library_item.zeta]
+}
+
+data "vsphere_content_library_items" "sorted_desc" {
+  library_id = vsphere_content_library.library.id
+  sort_by    = "name"
+  sort_order = "desc"
+
+  depends_on = [vsphere_content_library_item.alpha, vsphere_content_library_item.zeta]
+}
+`, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
+		testhelper.TestOva,
+	)
+}
+
+func testAccDataSourceVSphereContentLibraryItemsLimitConfig() string {
+	return fmt.Sprintf(`
+%s
+
+variable "file" {
+  type    = string
+  default = "%s"
+}
+
+resource "vsphere_content_library" "library" {
+  name            = "ContentLibrary_items_limit_test"
+  storage_backing = [data.vsphere_datastore.rootds1.id]
+  description     = "Library Description"
+}
+
+resource "vsphere_content_library_item" "alpha" {
+  name       = "AlphaVM"
+  library_id = vsphere_content_library.library.id
+  type       = "ova"
+  file_url   = var.file
+}
+
+resource "vsphere_content_library_item" "zeta" {
+  name       = "ZetaVM"
+  library_id = vsphere_content_library.library.id
+  type       = "ova"
+  file_url   = var.file
+}
+
+data "vsphere_content_library_items" "limited" {
+  library_id = vsphere_content_library.library.id
+  sort_by    = "name"
+  sort_order = "asc"
+  limit      = 1
+
+  depends_on = [vsphere_content_library_item.alpha, vsphere_content_library_item.zeta]
 }
 `, testhelper.CombineConfigs(testhelper.ConfigDataRootDC1(), testhelper.ConfigDataRootDS1()),
 		testhelper.TestOva,

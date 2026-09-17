@@ -80,6 +80,12 @@ The following arguments are supported:
   Mutually exclusive with `name`. If omitted, items of any name are returned.
 * `type` - (Optional) Filter items by type (e.g. `ovf`, `iso`, `vm-template`).
   If omitted, items of any type are returned.
+* `sort_by` - (Optional) Sort items by field. Accepted values:
+  `last_modified_time`, `creation_time`, `name`. Defaults to `last_modified_time`.
+* `sort_order` - (Optional) Sort order. Accepted values: `asc`, `desc`.
+  Defaults to `desc` (most recent first).
+* `limit` - (Optional) Maximum number of items to return after sorting. If
+  omitted, all matching items are returned.
 
 ## Attribute Reference
 
@@ -89,3 +95,5 @@ The following arguments are supported:
   * `id` - The UUID of the content library item.
   * `name` - The name of the content library item.
   * `type` - The type of the content library item.
+  * `creation_time` - The creation time of the item (RFC3339).
+  * `last_modified_time` - The last modification time of the item (RFC3339).
