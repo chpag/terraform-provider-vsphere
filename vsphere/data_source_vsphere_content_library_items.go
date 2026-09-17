@@ -39,7 +39,7 @@ func dataSourceVSphereContentLibraryItems() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Filter by exact name of the content library item. Mutually exclusive with name_regex.",
+				Description: "Filter items by name (case-insensitive) of the content library item. Mutually exclusive with name_regex.",
 			},
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -52,7 +52,7 @@ func dataSourceVSphereContentLibraryItems() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Filter by type of the content library item (e.g. ovf, iso, vm-template). If omitted, all items matching the name filter are returned.",
+				Description: "Filter items by type of the content library item (e.g. ovf, iso, vm-template). If omitted, all items matching the name filter are returned.",
 			},
 			"sort_by": {
 				Type:         schema.TypeString,
