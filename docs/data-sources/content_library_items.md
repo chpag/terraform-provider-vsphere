@@ -39,8 +39,8 @@ data "vsphere_content_library" "library" {
 }
 
 data "vsphere_content_library_items" "ubuntu" {
-  library_id  = data.vsphere_content_library.library.id
-  name_regex  = "^ubuntu-.*-lts$"
+  library_id = data.vsphere_content_library.library.id
+  name_regex = "^ubuntu-.*-lts$"
 }
 ```
 
